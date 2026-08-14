@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 프로필 사진관</title>
+<style>
+/* ─────────────────────────────────────────────────────────────
+   화면 꾸미는 부분입니다. 마음껏 바꿔보세요.
+   색만 바꾸고 싶으면 아래 --deep / --pt1 같은 값만 고치면 됩니다.
+   ───────────────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1d2433; --gray:#69718a; --line:#e3e7f2;
+  --bg:#eef2fa; --card:#fff; --deep:#41627e; --deep2:#2f4a61;
+  --pt1:#f5d6c6; --pt2:#cfe0f0; --pt3:#e7dcf5; --pt4:#d8ecdf;
+}
+body{background:var(--bg);color:var(--ink);
+     font:400 16px/1.65 "Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+     word-break:keep-all;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 80px}
+
+/* 상단 바 */
+.bar{position:sticky;top:0;z-index:9;background:rgba(238,242,250,.92);
+     backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar .in{max-width:900px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:10px}
+.logo{width:28px;height:28px;border-radius:9px;background:var(--deep);display:grid;place-items:center}
+.logo span{width:11px;height:14px;border-radius:50% 50% 45% 45%;background:#fff;display:block}
+.bname{font-weight:800;font-size:16px}
+.bar a{margin-left:auto;background:var(--deep);color:#fff;text-decoration:none;font-weight:700;
+       font-size:14px;padding:9px 18px;border-radius:999px}
+
+/* 인물 카드 — img/ 폴더의 사진을 씁니다 */
+.gal{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:26px 0 30px}
+.ph{aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#dfe5f0;
+    box-shadow:0 2px 10px rgba(30,40,70,.08)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+
+h1{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.2;text-align:center;margin:6px 0 4px}
+h1 em{font-style:italic;font-weight:400;color:var(--deep)}
+.sub{text-align:center;color:var(--gray);font-size:15px;margin-bottom:22px}
+.cta{display:block;width:fit-content;margin:0 auto;background:var(--deep);color:#fff;border:0;
+     text-decoration:none;font-weight:700;font-size:17px;padding:14px 34px;border-radius:999px;
+     font-family:inherit;cursor:pointer;box-shadow:0 6px 18px rgba(65,98,126,.28)}
+.cta:hover{background:var(--deep2)}
+
+.sec{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px 26px;margin:26px 0}
+h2{font-size:27px;font-weight:800;text-align:center;letter-spacing:-.02em}
+.tag{display:block;width:fit-content;margin:12px auto 6px;font-size:11.5px;font-weight:800;
+     letter-spacing:.08em;color:var(--gray);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+.lbl{text-align:center;font-weight:800;font-size:19px;color:var(--deep);margin-top:10px}
+.hint{text-align:center;color:var(--gray);font-size:13px;margin-bottom:10px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:430px;margin:0 auto}
+.before .ph{filter:grayscale(.65) blur(1.1px);opacity:.8}
+.arrow{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;
+       border:1px solid var(--line);margin:16px auto 6px;color:var(--gray)}
+
+/* 채팅 목업 */
+.chat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:14px}
+.who{font-size:13px;font-weight:800;color:var(--gray);border-bottom:1px solid var(--line);
+     padding-bottom:9px;margin-bottom:12px}
+.who i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c07d;margin-right:6px}
+.msg{max-width:74%;padding:9px 13px;border-radius:13px;font-size:14px;margin-bottom:9px;background:#f1f4f9}
+.msg.me{margin-left:auto;background:var(--deep);color:#fff}
+.thumbs{display:flex;gap:7px;margin:8px 0 10px}
+.thumbs .ph{width:56px;aspect-ratio:1;border-radius:9px}
+
+/* ── 업로드 단계 ─────────────────────────────────────────── */
+.steps{display:flex;gap:6px;margin-bottom:20px}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.steps i.on{background:var(--deep)}
+.h3{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.ok{color:#0e9d6f;font-weight:800;font-size:14.5px;margin:12px 0 10px}
+.ok.warn{color:var(--gray)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-bottom:16px}
+.tile{position:relative;aspect-ratio:3/4;border-radius:11px;overflow:hidden;background:#f1f4f9}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile button{position:absolute;top:5px;right:5px;width:21px;height:21px;border:0;border-radius:50%;
+     background:rgba(20,26,38,.62);color:#fff;font-size:12px;line-height:1;cursor:pointer}
+.tile button:hover{background:rgba(20,26,38,.85)}
+.drop{border:2px dashed #c8d2e4;border-radius:14px;padding:34px 20px;text-align:center;cursor:pointer;
+      color:var(--gray);font-size:14.5px;background:#fbfcfe}
+.drop:hover{border-color:var(--deep);color:var(--deep);background:#f6f9fd}
+.drop b{display:block;font-size:17px;color:var(--ink);margin-bottom:4px}
+.more{display:block;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:999px;
+      padding:11px 22px;font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--ink)}
+.more:hover{border-color:var(--deep);color:var(--deep)}
+.navrow{display:flex;align-items:center;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.navrow .back{color:var(--gray);font-size:14.5px;background:0;border:0;font-family:inherit;cursor:pointer}
+.navrow .cta{margin:0 0 0 auto;font-size:15.5px;padding:12px 26px;box-shadow:none}
+.cta:disabled{background:#c3cddb;cursor:not-allowed}
+.hide{display:none !important}
+
+/* 생성 중 */
+.load{text-align:center;padding:34px 0}
+.spin{width:44px;height:44px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--deep);
+      margin:0 auto 18px;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.load p{color:var(--gray);font-size:15px}
+
+/* 결과 — 개그 구간 */
+.res{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px}
+.res .cap{text-align:center;font-weight:800;font-size:15px;margin-bottom:8px;color:var(--deep)}
+.res .cap.b{color:var(--gray)}
+.shot{aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#f1f4f9}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+/* ⬇️ "AI 보정"의 정체 — 그냥 CSS 필터입니다 */
+.shot.after img{filter:contrast(1.1) saturate(1.18) brightness(1.05)}
+.punch{background:#fff8e5;border:1px solid #f6e0a8;border-radius:12px;padding:14px 16px;margin-top:18px;
+       font-size:14.5px;color:#6b5312;text-align:center}
+.punch b{color:#4a3608}
+
+/* 신청 폼 */
+.form{display:flex;gap:9px;max-width:420px;margin:16px auto 10px}
+.form input{flex:1;border:1px solid var(--line);border-radius:999px;padding:13px 18px;font-size:15px;
+            font-family:inherit;background:#fff}
+.form input:focus{outline:2px solid var(--deep);outline-offset:1px}
+.form button{background:var(--deep);color:#fff;border:0;border-radius:999px;padding:13px 26px;
+             font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
+.form button:hover{background:var(--deep2)}
+.count{text-align:center;font-size:14px;color:var(--gray)}
+.count b{color:var(--deep);font-size:19px}
+
+/* 신청 완료 배너 */
+.done{background:#fff;border:1px solid var(--line);border-radius:18px;padding:30px 26px;
+      margin:26px 0;text-align:center}
+.done .pop{font-size:44px}
+.done h2{margin:6px 0 12px}
+.done .badge{display:inline-block;background:#fcd34d;color:#4a3608;font-weight:800;font-size:14px;
+             padding:8px 18px;border-radius:999px}
+.done .fine{color:var(--gray);font-size:14px;margin-top:12px}
+
+.foot{text-align:center;color:var(--gray);font-size:12.5px;line-height:1.8;margin-top:34px}
+.foot b{color:var(--ink)}
+
+@media(max-width:640px){
+  .gal{gap:7px} h1{font-size:31px}
+  .form{flex-direction:column} .form input,.form button{width:100%}
+  .res{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="bar"><div class="in">
+  <span class="logo"><span></span></span>
+  <span class="bname">AI 프로필 사진관</span>
+  <a href="#apply">신청하기</a>
+</div></div>
+
+<div class="wrap">
+
+  {{done}}
+
+  <div class="gal">
+    <div class="ph"><img src="img/p1.jpg" alt=""></div>
+    <div class="ph"><img src="img/p2.jpg" alt=""></div>
+    <div class="ph"><img src="img/p3.jpg" alt=""></div>
+    <div class="ph"><img src="img/p4.jpg" alt=""></div>
+    <div class="ph"><img src="img/p5.jpg" alt=""></div>
+    <div class="ph"><img src="img/p6.jpg" alt=""></div>
+    <div class="ph"><img src="img/p7.jpg" alt=""></div>
+    <div class="ph"><img src="img/p8.jpg" alt=""></div>
+  </div>
+
+  <!-- ⬇️ 아래 제목 앞부분이 검사(test_app.py)가 찾는 말입니다. 지우면 빨간불이 떠요 -->
+  <h1>나를 닮은 AI 프로필<br><em>사진관에 간 것처럼</em></h1>
+  <p class="sub">스튜디오 예약도, 메이크업도 없이 — 사진 몇 장이면 됩니다.</p>
+  <button class="cta" onclick="document.getElementById('up').scrollIntoView({behavior:'smooth'})">
+    지금 만들어보기 →</button>
+
+  <div class="sec">
+    <h2>이렇게 바뀝니다</h2>
+    <span class="tag">BEFORE &amp; AFTER</span>
+
+    <div class="lbl">BEFORE</div>
+    <p class="hint">그냥 갖고 있던 사진들</p>
+    <div class="row3 before">
+      <div class="ph"><img src="img/p3.jpg" alt=""></div>
+      <div class="ph"><img src="img/p5.jpg" alt=""></div>
+      <div class="ph"><img src="img/p8.jpg" alt=""></div>
+    </div>
+
+    <div class="arrow">↓</div>
+
+    <div class="lbl">AFTER</div>
+    <p class="hint">사진관에서 찍은 것처럼</p>
+    <div class="row3">
+      <div class="ph"><img src="img/p6.jpg" alt=""></div>
+      <div class="ph"><img src="img/p2.jpg" alt=""></div>
+      <div class="ph"><img src="img/p7.jpg" alt=""></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>자판기가 아니라, 대화입니다</h2>
+    <p class="sub">담당 작가가 붙어서 <b>마음에 들 때까지</b> 같이 고릅니다.</p>
+    <div class="chat">
+      <div class="who"><i></i>담당 작가 · 미나</div>
+      <div class="msg">안녕하세요! 어울릴 만한 느낌 세 가지를 먼저 잡아봤어요 🎨</div>
+      <div class="thumbs">
+        <div class="ph"><img src="img/p2.jpg" alt=""></div>
+        <div class="ph"><img src="img/p6.jpg" alt=""></div>
+        <div class="ph"><img src="img/p4.jpg" alt=""></div>
+      </div>
+      <div class="msg">어떤 쪽이 제일 나 같으세요?</div>
+      <div class="msg me">가운데가 제일 마음에 들어요 😊</div>
+      <div class="msg">좋아요! 피부 톤만 조금 정리해 드릴까요?</div>
+      <div class="msg me">네, 자연스럽게만요 🙏</div>
+      <div class="msg">바로 작업할게요 — 과하지 않게, 딱 자연스럽게요!</div>
+    </div>
+  </div>
+
+  <!-- ══ 업로드 → 생성 → 결과 ══════════════════════════════ -->
+  <div class="sec" id="up">
+    <div class="steps"><i class="on"></i><i class="on" id="s2"></i><i id="s3"></i><i></i><i></i></div>
+
+    <!-- 1단계: 사진 넣기 -->
+    <div id="stepUpload">
+      <div class="h3">내 사진</div>
+      <p class="hint" style="text-align:left;margin:6px 0 0">마음에 안 드는 건 빼고, 더 넣어도 돼요 — 다 되면 계속하기.</p>
+      <p class="ok warn" id="okline">아직 사진이 없어요 (최대 40장)</p>
+
+      <div class="grid" id="tiles"></div>
+
+      <div class="drop" id="drop">
+        <b>+ 사진 넣기</b>
+        여기를 누르거나, 사진을 끌어다 놓으세요
+      </div>
+      <button class="more hide" id="moreBtn">+ 사진 더 넣기</button>
+      <input type="file" id="file" accept="image/*" multiple hidden>
+
+      <div class="navrow">
+        <button class="back" onclick="location.href='#'">← 뒤로</button>
+        <button class="cta" id="goBtn" disabled>생성하기 →</button>
+      </div>
+    </div>
+
+    <!-- 2단계: 생성 중 -->
+    <div id="stepLoad" class="hide">
+      <div class="load">
+        <div class="spin"></div>
+        <p id="loadMsg">사진을 살펴보는 중…</p>
+      </div>
+    </div>
+
+    <!-- 3단계: 결과 (개그) -->
+    <div id="stepDone" class="hide">
+      <div class="h3" style="text-align:center">완성됐어요!</div>
+      <p class="hint">AI가 열심히 작업했습니다.</p>
+      <div class="res">
+        <div><div class="cap b">BEFORE</div><div class="shot" id="shotB"></div></div>
+        <div><div class="cap">AFTER ✨</div><div class="shot after" id="shotA"></div></div>
+      </div>
+      <div class="punch">
+        🙈 …네, <b>같은 사진입니다.</b> 이 서비스에는 <b>AI가 없어요.</b><br>
+        진짜로 만들기 전에 <b>먼저 올려서, 사람들이 신청을 하는지부터</b> 보는 중이거든요.<br>
+        <b>그게 오늘 배우는 겁니다.</b>
+      </div>
+      <div class="navrow">
+        <button class="back" id="againBtn">← 다시 해보기</button>
+        <button class="cta" onclick="document.getElementById('apply').scrollIntoView({behavior:'smooth'})">
+          그래도 신청할래요 →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="apply">
+    <h2>신청하기</h2>
+    <p class="sub">이름만 남겨주시면 순서대로 연락드려요. 3분이면 끝납니다.</p>
+    <form class="form" method="post" action="/apply">
+      <input name="name" placeholder="이름을 입력해 주세요" maxlength="40" required autocomplete="off">
+      <button type="submit">신청 →</button>
+    </form>
+    <p class="count">지금까지 <b>{{count}}</b>명이 신청했어요</p>
+  </div>
+
+  <p class="foot">
+    <b>10주 개발 클래스 · 배포 실습용 데모입니다.</b><br>
+    실제 서비스가 아니고, <b>AI 기능도 들어 있지 않습니다</b> — 만들기 전에 먼저 올려서
+    반응을 보는 방식을 그대로 따라 해 본 화면이에요.<br>
+    올린 사진은 <b>브라우저 밖으로 나가지 않습니다</b>(서버로 전송하지 않아요).
+    입력한 이름만 이 서버의 파일에 저장됩니다.
+  </p>
+
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   사진은 서버로 보내지 않습니다. 브라우저가 읽어서 화면에만 씁니다.
+   그래서 서버(app.py)는 계속 단순하게 둘 수 있어요.
+   ───────────────────────────────────────────────────────────── */
+const MAX = 40;
+const LOADING_MSGS = [
+  "사진을 살펴보는 중…",
+  "얼굴 각도를 맞추는 중…",
+  "조명을 다시 잡는 중…",
+  "피부 톤을 정리하는 중…",
+  "마무리 보정 중…",
+];
+
+let photos = [];                                  // data URL 목록
+const $ = (id) => document.getElementById(id);
+
+function render() {
+  $("tiles").innerHTML = photos.map((src, i) =>
+    `<div class="tile"><img src="${src}" alt=""><button data-i="${i}" title="빼기">✕</button></div>`
+  ).join("");
+
+  const has = photos.length > 0;
+  $("okline").textContent = has
+    ? `✓ ${photos.length}장 — 좋아요 (최대 ${MAX}장)`
+    : `아직 사진이 없어요 (최대 ${MAX}장)`;
+  $("okline").classList.toggle("warn", !has);
+  $("drop").classList.toggle("hide", has);        // 한 장이라도 있으면 큰 박스는 접고
+  $("moreBtn").classList.toggle("hide", !has);    // 작은 버튼으로 바꾼다
+  $("goBtn").disabled = !has;
+
+  document.querySelectorAll(".tile button").forEach(b =>
+    b.onclick = () => { photos.splice(+b.dataset.i, 1); render(); });
+}
+
+function addFiles(fileList) {
+  const room = MAX - photos.length;
+  [...fileList].filter(f => f.type.startsWith("image/")).slice(0, room).forEach(f => {
+    const r = new FileReader();
+    r.onload = e => { photos.push(e.target.result); render(); };
+    r.readAsDataURL(f);
+  });
+}
+
+$("drop").onclick = () => $("file").click();
+$("moreBtn").onclick = () => $("file").click();
+$("file").onchange = e => { addFiles(e.target.files); e.target.value = ""; };
+
+$("drop").ondragover = e => { e.preventDefault(); };
+$("drop").ondrop = e => { e.preventDefault(); addFiles(e.dataTransfer.files); };
+
+$("goBtn").onclick = () => {
+  $("stepUpload").classList.add("hide");
+  $("stepLoad").classList.remove("hide");
+  $("s3").classList.add("on");
+
+  // 로딩 문구를 갈아끼우며 3초쯤 뜸들인다 — 열심히 일하는 척
+  let n = 0;
+  const timer = setInterval(() => {
+    n += 1;
+    $("loadMsg").textContent = LOADING_MSGS[n % LOADING_MSGS.length];
+  }, 700);
+
+  setTimeout(() => {
+    clearInterval(timer);
+    const last = photos[photos.length - 1];       // ⭐ 마지막 사진을 그대로 "결과"로 쓴다
+    $("shotB").innerHTML = `<img src="${last}" alt="">`;
+    $("shotA").innerHTML = `<img src="${last}" alt="">`;
+    $("stepLoad").classList.add("hide");
+    $("stepDone").classList.remove("hide");
+    $("stepDone").scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 3500);
+};
+
+$("againBtn").onclick = () => {
+  $("stepDone").classList.add("hide");
+  $("stepUpload").classList.remove("hide");
+  $("s3").classList.remove("on");
+  $("up").scrollIntoView({ behavior: "smooth" });
+};
+
+render();
+</script>
+</body>
+</html>

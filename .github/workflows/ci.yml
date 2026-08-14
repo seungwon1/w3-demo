@@ -25,4 +25,6 @@ jobs:
           name: w3-demo-${{ github.run_number }}
           path: |
             app.py
+            index.html
+            img
             README.md
