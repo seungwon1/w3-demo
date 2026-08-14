@@ -38,9 +38,10 @@ HEADLINE = "나를 닮은 AI 프로필"       # ← test_app.py가 보는 딱 �
 #   앱 비밀번호 = Google 계정 → 보안 → 2단계 인증 → 앱 비밀번호 (16자리).
 #   평소 쓰는 Gmail 비밀번호로는 안 됩니다.
 # ─────────────────────────────────────────────────────────────────────
-MAIL_TO = os.environ.get("MAIL_TO", "")
-MAIL_FROM = os.environ.get("MAIL_FROM", "")
-MAIL_APP_PASSWORD = os.environ.get("MAIL_APP_PASSWORD", "")
+MAIL_TO = os.environ.get("MAIL_TO", "").strip()
+MAIL_FROM = os.environ.get("MAIL_FROM", "").strip()
+# 구글이 앱 비밀번호를 "abcd efgh ijkl mnop" 처럼 4자씩 띄어서 보여준다 → 띄어쓰기는 빼고 쓴다
+MAIL_APP_PASSWORD = os.environ.get("MAIL_APP_PASSWORD", "").replace(" ", "")
 
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
