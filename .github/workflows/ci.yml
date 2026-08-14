@@ -1,0 +1,28 @@
+# 이 파일이 하는 일 = "사람이 보기 전에 기계가 먼저 돌려본다".
+# 고칠 일은 없고, 아래 `on: push` 한 줄만 알면 됩니다.
+
+name: 테스트
+
+# ⭐ GitHub에 올릴 때마다 자동으로 돕니다. 제가 부르는 게 아니에요.
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest      # GitHub이 잠깐 빌려주는 컴퓨터. 끝나면 사라집니다
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install pytest
+      - run: pytest -v
+
+      # ⬇️ 여기서 만드는 게 "패키지(도시락)" — 실행 결과 페이지에 zip으로 매달립니다.
+      #    번호가 붙어서 남으니, 되돌리고 싶을 때 그 번호의 zip을 다시 꺼내면 됩니다.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: w3-demo-${{ github.run_number }}
+          path: |
+            app.py
+            README.md
